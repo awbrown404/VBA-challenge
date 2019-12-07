@@ -1,0 +1,109 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1671\cocoasubrtf600
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww10800\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 Sub stock_data()\
+    Dim ws As Worksheet\
+    ' Set loop through the worksheets\
+    For Each ws In Worksheets\
+        ' Set up variables\
+        Dim ticker_symbol As String\
+        Dim summary_table As LongLong\
+        Dim yearly_change As Double\
+        Dim percent_change As Double\
+        Dim stock_volume As LongLong\
+        Dim og_price As Double\
+        Dim new_price As Double\
+        ' Set initial values to variables\
+        ticker_symbol = ws.Cells(2, 1).Value\
+        og_price = ws.Cells(2, 6).Value\
+        summary_table = 3\
+        ws.Cells(2, 9).Value = ticker_symbol\
+        ' Set last row and summary table headers\
+        last_row = ws.Range("A" & Rows.Count).End(xlUp).Row\
+        ws.Cells(1, 9).Value = "Ticker Symbol"\
+        ws.Cells(1, 10).Value = "Yearly Change"\
+        ws.Cells(1, 11).Value = "Percent Change"\
+        ws.Cells(1, 12).Value = "Total Stock Volume"\
+            ' Set up loop through the rows on each worksheet\
+            For i = 2 To last_row\
+                ' Set next cell conditional\
+                If ws.Cells(i + 1, 1).Value <> ws.Cells(i, 1).Value Then\
+                    ' 1- Establish new ticker symbol and move to summary table\
+                    ticker_symbol = ws.Cells(i + 1, 1).Value\
+                    ws.Range("I" & summary_table).Value = ticker_symbol\
+                    ' 2- Set new price\
+                    new_price = ws.Cells(i, 6).Value\
+                    ' 3- Calculate Yearly Chance and place in summary table position\
+                    yearly_change = new_price - og_price\
+                    ws.Range("J" & summary_table - 1).Value = yearly_change\
+                    ' 4- Set yearly percent change formula and summary table position\
+                    If og_price = 0 Then\
+                        ws.Range("K" & summary_table - 1).Value = "0.00"\
+                    Else\
+                        percent_change = (new_price - og_price) / og_price\
+                        ws.Range("K" & summary_table - 1).Value = percent_change\
+                    End If\
+                    ' 5- Set total stock volume and summary table position\
+                    stock_volume = stock_volume + ws.Cells(i, 7).Value\
+                    ws.Range("L" & summary_table - 1).Value = stock_volume\
+                    ' 6- Reset og price and stock volume\
+                    og_price = ws.Cells(i + 1, 6).Value\
+                    stock_volume = 0\
+                    ' 7- Add row to summary_table\
+                    summary_table = summary_table + 1\
+                Else\
+                    ' 1- Set total stock volume\
+                    stock_volume = stock_volume + ws.Cells(i, 7).Value\
+                End If\
+            Next i\
+            ' Change Values in Percent Change columns to percent\
+            ws.Range("K:K").NumberFormat = "0.00%"\
+            ' Set loop for the yearly change conditional\
+            JLast_row = ws.Range("J" & Rows.Count).End(xlUp).Row\
+            For j = 2 To JLast_row\
+                If ws.Cells(j, 10).Value > 0 Then\
+                    ws.Cells(j, 10).Interior.ColorIndex = 4\
+                Else\
+                    ws.Cells(j, 10).Interior.ColorIndex = 3\
+                End If\
+            Next j\
+            Dim max_increase As Double\
+            Dim max_decrease As Double\
+            Dim max_volume As LongLong\
+            ' Set variable values\
+            max_increase = WorksheetFunction.Max(Range("K:K"))\
+            max_decrease = WorksheetFunction.Min(Range("K:K"))\
+            max_volume = WorksheetFunction.Max(Range("L:L"))\
+            ' Create Table for the Greatest % Increase/Decrease and Total Volume\
+            ws.Range("N" & 1).Value = "Greatest % Increase"\
+            ws.Range("N" & 2).Value = "Greatest % Decrease"\
+            ws.Range("N" & 3).Value = "Greatest Totoal Volume"\
+            ' Set code for values above\
+            ws.Range("P" & 1).Value = max_increase\
+            ws.Range("P" & 2).Value = max_decrease\
+            ws.Range("P" & 3).Value = max_volume\
+            ' Set loop to pull ticker symbol\
+            For k = 2 To JLast_row\
+                 If ws.Range("K" & k).Value = max_increase Then\
+                    ws.Range("O" & 1).Value = ws.Range("I" & k).Value\
+                End If\
+                If ws.Range("K" & k).Value = max_decrease Then\
+                    ws.Range("O" & 2).Value = ws.Range("I" & k).Value\
+                End If\
+                If ws.Range("L" & k).Value = max_volume Then\
+                    ws.Range("O" & 3).Value = ws.Range("I" & k).Value\
+                End If\
+            Next k\
+            ws.Range("P" & 1).NumberFormat = "0.00%"\
+            ws.Range("P" & 2).NumberFormat = "0.00%"\
+            ' Reset last row values\
+            last_row = 0\
+            JLast_row = 0\
+    Next ws\
+End Sub\
+\
+}
